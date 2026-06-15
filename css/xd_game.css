@@ -89,11 +89,6 @@ body {
 
 
 /* ===== 赛季选择按钮组 ===== */
-#seasonFilterGroup.disabled {
-    opacity: 0.45;
-    pointer-events: none;
-}
-
 .season-btns {
     display: flex;
     flex-wrap: wrap;
@@ -158,6 +153,24 @@ body {
 
 .chart-wrapper .apexcharts-canvas {
     margin: 0 auto;
+}
+
+/* 图表顶部工具栏 */
+.chart-top-bar {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+}
+
+.chart-top-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #7dc3ea;
+    white-space: nowrap;
 }
 
 /* 赛季趋势图容器隐藏 */

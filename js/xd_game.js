@@ -12,7 +12,6 @@
     const $$ = (sel) => document.querySelectorAll(sel);
 
     const gameBtnsEl = $('#gameBtns');
-    const seasonFilterGroup = $('#seasonFilterGroup');
     const seasonBtnsEl = $('#seasonBtns');
     const seasonTrendWrapper = $('#seasonTrendWrapper');
 
@@ -89,10 +88,8 @@
     function handleGameChange() {
         const needLoadSeasons = isTorchlightGame() && seasonConfigs.length === 0;
         if (isTorchlightGame()) {
-            seasonFilterGroup.classList.remove('disabled');
             seasonTrendWrapper.classList.remove('hidden');
         } else {
-            seasonFilterGroup.classList.add('disabled');
             seasonTrendWrapper.classList.add('hidden');
         }
         // 如果需要加载赛季配置，则暂不刷新，等 loadSeasonConfigs 完成后再刷新
@@ -138,7 +135,7 @@
                     selectedSeasons.push(ssVal);
                 }
                 updateSeasonButtonStates();
-                refreshCharts();
+                refreshSeasonChart();
             });
             seasonBtnsEl.appendChild(btn);
         });
@@ -581,6 +578,16 @@
                 }, false, true);
             });
         });
+    }
+
+    // ==================== 仅刷新赛季趋势图 ====================
+    async function refreshSeasonChart() {
+        try {
+            const seasonData = await fetchSeasonPlayersData();
+            renderSeasonTrendChart(seasonData);
+        } catch (err) {
+            console.error('刷新赛季趋势图失败:', err);
+        }
     }
 
     // ==================== 刷新图表 ====================

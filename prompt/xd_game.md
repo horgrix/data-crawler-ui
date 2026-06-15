@@ -9,9 +9,6 @@ css/
 js/xd_game.js
 htm/xd_game.html
 
-# 缓存
-所有查询缓存10分钟
-
 # 页面布局
 ## 查询条件
 页面顶部 如果向下滑动离开屏幕，则悬浮在顶部
@@ -20,20 +17,6 @@ htm/xd_game.html
 数据格式
 [{"steam_id": 1234, "steam_name": "xxx"}]
 单选，默认选中 steam_id = 1974050 
-展示方式：平铺开，多个选择按钮
-### 分割线 
-宽度 5px，左右各5px距离
-### 分割线
-宽度 5px，左右各5px距离
-### 赛季选择
-如果游戏筛选没有选择steam_id = 1974050 或 steam_id = 2315040 则禁用
-数据来源：/xd/games/torchlight/season/configs
-数据格式：[{
-    "start_date": 202060101,
-    "end_date": 20260606,
-    "ss": 11,
-}]
-多选，按ss倒序展示，默认选择2个
 展示方式：平铺开，多个选择按钮
 ## 图表
 
@@ -176,6 +159,16 @@ type 设置为 weekly
 
 ## Steam 火炬之光 赛季玩家趋势对比图
 如果查询条件的游戏筛选没有选择steam_id = 1974050 或 steam_id = 2315040 则隐藏
+图表左上角添加 "对比赛季选择" 
+赛季数据来源：/xd/games/torchlight/season/configs
+数据格式：[{
+    "start_date": 202060101,
+    "end_date": 20260606,
+    "ss": 11,
+}]
+多选，按ss倒序展示，默认选择2个
+展示方式：平铺开，多个选择按钮
+选择赛季按钮后只刷新自己的图表
 ### 使用图表：line
 图例：top
 阴影设置：dropShadow: {
