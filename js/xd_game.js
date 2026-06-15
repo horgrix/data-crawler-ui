@@ -12,9 +12,6 @@
     const $$ = (sel) => document.querySelectorAll(sel);
 
     const gameBtnsEl = $('#gameBtns');
-    const startDateEl = $('#startDate');
-    const endDateEl = $('#endDate');
-    const quickBtns = $$('.quick-btns button');
     const seasonFilterGroup = $('#seasonFilterGroup');
     const seasonBtnsEl = $('#seasonBtns');
     const seasonTrendWrapper = $('#seasonTrendWrapper');
@@ -39,16 +36,6 @@
 
     function displayToDateStr(displayStr) {
         return displayStr.replace(/-/g, '');
-    }
-
-    function getDefaultDateRange() {
-        const end = new Date();
-        const start = new Date();
-        start.setDate(start.getDate() - 30);
-        return {
-            start: start.toISOString().slice(0, 10),
-            end: end.toISOString().slice(0, 10),
-        };
     }
 
     function isTorchlightGame() {
@@ -164,30 +151,9 @@
         });
     }
 
-    // ==================== 快捷日期 ====================
-    function setQuickDate(days, months, years) {
-        const end = new Date();
-        const start = new Date();
-        if (days) start.setDate(start.getDate() - days);
-        if (months) start.setMonth(start.getMonth() - months);
-        if (years) start.setFullYear(start.getFullYear() - years);
-        startDateEl.value = start.toISOString().slice(0, 10);
-        endDateEl.value = end.toISOString().slice(0, 10);
-
-        quickBtns.forEach(b => b.classList.remove('active'));
-        const matchBtn = document.querySelector(`.quick-btns button[data-days="${days}"], .quick-btns button[data-months="${months}"], .quick-btns button[data-years="${years}"]`);
-        if (matchBtn) matchBtn.classList.add('active');
-
-        refreshCharts();
-    }
-
     // ==================== 图表 - Steam 实时排行榜 (Line) ====================
     async function fetchHourlyRankData() {
-        const startStr = displayToDateStr(startDateEl.value);
-        const endStr = displayToDateStr(endDateEl.value);
         return apiGet('/steam/region_rank', {
-            start_date: startStr,
-            end_date: endStr,
             steam_id: selectedSteamId,
             type: 'hourly',
         });
@@ -266,11 +232,7 @@
 
     // ==================== 图表 - Steam 周排行榜 (Heatmap) ====================
     async function fetchWeeklyRankData() {
-        const startStr = displayToDateStr(startDateEl.value);
-        const endStr = displayToDateStr(endDateEl.value);
         return apiGet('/steam/region_rank', {
-            start_date: startStr,
-            end_date: endStr,
             steam_id: selectedSteamId,
             type: 'weekly',
         });
@@ -478,7 +440,7 @@
             '1m': 30 * 24 * 60 * 60 * 1000,
             '3m': 90 * 24 * 60 * 60 * 1000,
             '1y': 365 * 24 * 60 * 60 * 1000,
-        };
+        }; 
         return map[range] || 0;
     }
 
@@ -641,37 +603,11 @@
 
     // ==================== 事件绑定 ====================
     function bindEvents() {
-        // 日期变更
-        startDateEl.addEventListener('change', () => {
-            quickBtns.forEach(b => b.classList.remove('active'));
-            refreshCharts();
-        });
-        endDateEl.addEventListener('change', () => {
-            quickBtns.forEach(b => b.classList.remove('active'));
-            refreshCharts();
-        });
-
-        // 快捷日期
-        quickBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                const days = parseInt(btn.dataset.days) || 0;
-                const months = parseInt(btn.dataset.months) || 0;
-                const years = parseInt(btn.dataset.years) || 0;
-                setQuickDate(days || undefined, months || undefined, years || undefined);
-            });
-        });
+        // 无额外事件绑定（事件由按钮动态绑定）
     }
 
     // ==================== 初始化 ====================
     function init() {
-        const { start, end } = getDefaultDateRange();
-        startDateEl.value = start;
-        endDateEl.value = end;
-
-        // 默认 30 天高亮
-        const btn30 = document.querySelector('.quick-btns button[data-days="30"]');
-        if (btn30) btn30.classList.add('active');
-
         bindEvents();
         loadGames();
     }

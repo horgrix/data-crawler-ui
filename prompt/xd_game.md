@@ -9,6 +9,8 @@ css/
 js/xd_game.js
 htm/xd_game.html
 
+# 缓存
+所有查询缓存10分钟
 
 # 页面布局
 ## 查询条件
@@ -19,7 +21,7 @@ htm/xd_game.html
 [{"steam_id": 1234, "steam_name": "xxx"}]
 单选，默认选中 steam_id = 1974050 
 展示方式：平铺开，多个选择按钮
-### 分割线
+### 分割线 
 宽度 5px，左右各5px距离
 ### 分割线
 宽度 5px，左右各5px距离

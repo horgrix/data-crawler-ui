@@ -12,7 +12,7 @@ body {
 }
 
 /* ===== 查询条件悬浮区域 ===== */
-#filterBar {
+#filterBar { 
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -87,72 +87,6 @@ body {
     box-shadow: 0 0 12px rgba(125, 195, 234, 0.3);
 }
 
-/* ===== 日期筛选 ===== */
-.date-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-}
-
-.date-row input[type="date"] {
-    background: #1a2a3a;
-    border: 1px solid #3a5a7a;
-    border-radius: 6px;
-    color: #e0e0e0;
-    padding: 8px 12px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: border-color 0.2s;
-}
-
-.date-row input[type="date"]:hover {
-    border-color: #7dc3ea;
-}
-
-.date-row input[type="date"]:focus {
-    outline: none;
-    border-color: #7dc3ea;
-    box-shadow: 0 0 0 2px rgba(125, 195, 234, 0.2);
-}
-
-.date-sep {
-    color: #5a7a9a;
-    font-size: 14px;
-    user-select: none;
-}
-
-/* 快捷按钮 */
-.quick-btns {
-    display: flex;
-    gap: 6px;
-    flex-wrap: wrap;
-}
-
-.quick-btns button {
-    background: #1a2a3a;
-    border: 1px solid #3a5a7a;
-    border-radius: 4px;
-    color: #b0c8d8;
-    padding: 6px 10px;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-}
-
-.quick-btns button:hover {
-    background: #2a4a6a;
-    border-color: #7dc3ea;
-    color: #fff;
-}
-
-.quick-btns button.active {
-    background: #7dc3ea;
-    border-color: #7dc3ea;
-    color: #0f1923;
-    font-weight: 600;
-}
 
 /* ===== 赛季选择按钮组 ===== */
 #seasonFilterGroup.disabled {
