@@ -1,0 +1,306 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    background: #0f1923;
+    color: #e0e0e0;
+    min-height: 100vh;
+}
+
+/* ===== 查询条件悬浮区域 ===== */
+#filterBar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    background: linear-gradient(135deg, #1a2a3a 0%, #0f1923 100%);
+    border-bottom: 2px solid #2a4a6a;
+    padding: 16px 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    align-items: flex-start;
+}
+
+.filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.filter-item label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #7dc3ea;
+    white-space: nowrap;
+}
+
+/* ===== 分割线 ===== */
+.filter-divider {
+    width: 5px;
+    background: linear-gradient(180deg, transparent 0%, #3a5a7a 20%, #7dc3ea 50%, #3a5a7a 80%, transparent 100%);
+    border-radius: 3px;
+    align-self: stretch;
+    margin: 0 5px;
+    flex-shrink: 0;
+}
+
+/* ===== 游戏筛选按钮组 ===== */
+.game-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.game-btns button {
+    background: #1a2a3a;
+    border: 2px solid #3a5a7a;
+    border-radius: 8px;
+    color: #b0c8d8;
+    padding: 8px 16px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.game-btns button:hover {
+    background: #2a4a6a;
+    border-color: #7dc3ea;
+    color: #fff;
+}
+
+.game-btns button.active {
+    background: linear-gradient(135deg, #1a4a6a 0%, #2a5a8a 100%);
+    border-color: #7dc3ea;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 0 12px rgba(125, 195, 234, 0.3);
+}
+
+/* ===== 日期筛选 ===== */
+.date-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.date-row input[type="date"] {
+    background: #1a2a3a;
+    border: 1px solid #3a5a7a;
+    border-radius: 6px;
+    color: #e0e0e0;
+    padding: 8px 12px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.date-row input[type="date"]:hover {
+    border-color: #7dc3ea;
+}
+
+.date-row input[type="date"]:focus {
+    outline: none;
+    border-color: #7dc3ea;
+    box-shadow: 0 0 0 2px rgba(125, 195, 234, 0.2);
+}
+
+.date-sep {
+    color: #5a7a9a;
+    font-size: 14px;
+    user-select: none;
+}
+
+/* 快捷按钮 */
+.quick-btns {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.quick-btns button {
+    background: #1a2a3a;
+    border: 1px solid #3a5a7a;
+    border-radius: 4px;
+    color: #b0c8d8;
+    padding: 6px 10px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.quick-btns button:hover {
+    background: #2a4a6a;
+    border-color: #7dc3ea;
+    color: #fff;
+}
+
+.quick-btns button.active {
+    background: #7dc3ea;
+    border-color: #7dc3ea;
+    color: #0f1923;
+    font-weight: 600;
+}
+
+/* ===== 赛季选择按钮组 ===== */
+#seasonFilterGroup.disabled {
+    opacity: 0.45;
+    pointer-events: none;
+}
+
+.season-btns {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.season-btns button {
+    background: #1a2a3a;
+    border: 2px solid #3a5a7a;
+    border-radius: 8px;
+    color: #b0c8d8;
+    padding: 8px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.season-btns button:hover {
+    background: #2a4a6a;
+    border-color: #7dc3ea;
+    color: #fff;
+}
+
+.season-btns button.active {
+    background: linear-gradient(135deg, #1a4a6a 0%, #2a5a8a 100%);
+    border-color: #7dc3ea;
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 0 12px rgba(125, 195, 234, 0.3);
+}
+
+.season-btns button .ss-date-range {
+    font-size: 10px;
+    color: #7a9ab0;
+    font-weight: 400;
+}
+
+.season-btns button.active .ss-date-range {
+    color: #b0d0e0;
+}
+
+/* ===== 图表容器 ===== */
+#chartsContainer {
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+}
+
+.chart-wrapper {
+    background: #142130;
+    border: 1px solid #2a4a6a;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+}
+
+.chart-wrapper .apexcharts-canvas {
+    margin: 0 auto;
+}
+
+/* 赛季趋势图容器隐藏 */
+#seasonTrendWrapper.hidden {
+    display: none;
+}
+
+/* 峰值缩放按钮 */
+.zoom-btns {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.zoom-btns button {
+    background: #1a2a3a;
+    border: 1px solid #3a5a7a;
+    border-radius: 4px;
+    color: #b0c8d8;
+    padding: 5px 14px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.zoom-btns button:hover {
+    background: #2a4a6a;
+    border-color: #7dc3ea;
+    color: #fff;
+}
+
+.zoom-btns button.active {
+    background: #7dc3ea;
+    border-color: #7dc3ea;
+    color: #0f1923;
+    font-weight: 600;
+}
+
+/* ApexCharts 暗色主题覆盖 */
+.apexcharts-tooltip {
+    background: #1a2a3a !important;
+    border: 1px solid #3a5a7a !important;
+    color: #e0e0e0 !important;
+}
+
+.apexcharts-tooltip-title {
+    background: #0f1923 !important;
+    border-bottom: 1px solid #2a4a6a !important;
+    color: #7dc3ea !important;
+}
+
+.apexcharts-text {
+    fill: #b0c8d8 !important;
+}
+
+.apexcharts-gridline {
+    stroke: #2a3a4a !important;
+}
+
+.apexcharts-xaxis-tick {
+    stroke: #2a3a4a !important;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0f1923;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #3a5a7a;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #7dc3ea;
+}

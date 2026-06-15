@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>心动长青游戏数据追踪</title>
+    <link rel="stylesheet" href="../css/xd_game.css">
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+</head>
+<body>
+    <!-- 查询条件区域 - 悬浮 -->
+    <div id="filterBar">
+        <div class="filter-row">
+            <!-- 游戏筛选 - 平铺按钮 -->
+            <div class="filter-item">
+                <label>游戏筛选</label>
+                <div class="game-btns" id="gameBtns"></div>
+            </div>
+            <!-- 分割线 -->
+            <div class="filter-divider"></div>
+            <!-- 日期筛选 -->
+            <div class="filter-item">
+                <label>日期筛选</label>
+                <div class="date-row">
+                    <input type="date" id="startDate">
+                    <span class="date-sep">—</span>
+                    <input type="date" id="endDate">
+                    <div class="quick-btns">
+                        <button data-days="7">7天</button>
+                        <button data-days="15">15天</button>
+                        <button data-days="30">30天</button>
+                        <button data-months="1">1个月</button>
+                        <button data-months="6">6个月</button>
+                        <button data-years="1">1年</button>
+                    </div>
+                </div>
+            </div>
+            <!-- 分割线 -->
+            <div class="filter-divider"></div>
+            <!-- 赛季选择 - 平铺按钮 -->
+            <div class="filter-item" id="seasonFilterGroup">
+                <label>赛季选择</label>
+                <div class="season-btns" id="seasonBtns"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图表区域 -->
+    <div id="chartsContainer">
+        <div class="chart-wrapper">
+            <div id="chartLine"></div>
+        </div>
+        <div class="chart-wrapper">
+            <div id="chartHeatmap"></div>
+        </div>
+        <div class="chart-wrapper" id="seasonTrendWrapper">
+            <div id="chartSeasonTrend"></div>
+        </div>
+        <div class="chart-wrapper">
+            <div class="zoom-btns" id="peakZoomBtns">
+                <button data-range="1d">1天</button>
+                <button data-range="1m">1月</button>
+                <button data-range="3m">3月</button>
+                <button data-range="1y">1年</button>
+                <button data-range="all">ALL</button>
+            </div>
+            <div id="chartPeakPlayers"></div>
+        </div>
+    </div>
+
+    <script src="../js/xd_game.js"></script>
+</body>
+</html>
