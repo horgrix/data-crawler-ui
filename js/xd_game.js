@@ -2,7 +2,7 @@
     'use strict';
 
     // ==================== 常量 ====================
-    const API_HOST = 'http://www.horgrix.com';
+    const API_HOST = 'https://api.horgrix.com';
     const API_PREFIX = '/api/v1';
     const TORCHLIGHT_GAME_IDS = [1974050, 2315040];
     const DEFAULT_STEAM_ID = 1974050;
