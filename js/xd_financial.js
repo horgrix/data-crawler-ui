@@ -16,15 +16,20 @@
 
     // ==================== 状态 ====================
     let selectedOffset = DEFAULT_OFFSET;
-    let selectedPeriods = new Set(ALL_PERIODS); // 默认全选
+    let selectedPeriods = new Set(ALL_PERIODS);
     let financialChart = null;
     let marginChart = null;
     let operationalChart = null;
-    let expenseChart = null;
+    let totalExpenseChart = { obj: null };
+    let sellingMarketingChart = { obj: null };
+    let rdChart = { obj: null };
+    let gaChart = { obj: null };
     let revenueShareChart = null;
     let businessMarginChart = null;
     let gameRevenueCategoryChart = null;
     let gameRevenueMethodChart = null;
+    let contractLiabilitiesChart = null;
+    let cashEquivalentsChart = null;
 
     // ==================== 工具函数 ====================
     function getCurrentYear() {
@@ -36,7 +41,6 @@
         const url = new URL(API_HOST + API_PREFIX + path);
         Object.entries(params).forEach(([k, v]) => {
             if (v !== undefined && v !== null && v !== '') {
-                // 支持多值参数：数组添加多次同名参数 period=H1&period=H2
                 if (Array.isArray(v)) {
                     v.forEach(item => url.searchParams.append(k, item));
                 } else {
@@ -88,7 +92,6 @@
             btn.addEventListener('click', function () {
                 const period = this.dataset.period;
                 if (selectedPeriods.has(period)) {
-                    // 至少保留一个选中
                     if (selectedPeriods.size <= 1) return;
                     selectedPeriods.delete(period);
                 } else {
@@ -116,13 +119,11 @@
             return;
         }
 
-        // 构建 series 数据：使用 { x: period, y: value } 格式
         const revenueSeries = data.map(d => ({ x: d.period, y: d.revenue }));
         const grossProfitSeries = data.map(d => ({ x: d.period, y: d.gross_profit }));
         const profitAttrSeries = data.map(d => ({ x: d.period, y: d.profit_attr_to_shareholders }));
         const adjustedProfitAttrSeries = data.map(d => ({ x: d.period, y: d.adjusted_profit_attr_to_shareholders }));
 
-        // 构建 xaxis groups：按 report_year 分组，cols = 当前选中的财报类型数量
         const colsPerYear = selectedPeriods.size;
         const groups = [];
         const seenYears = new Set();
@@ -142,15 +143,7 @@
                 zoom: { enabled: true },
                 toolbar: {
                     show: true,
-                    tools: {
-                        download: true,
-                        selection: true,
-                        zoom: true,
-                        zoomin: true,
-                        zoomout: true,
-                        pan: true,
-                        reset: true,
-                    },
+                    tools: { download: true, selection: true, zoom: true, zoomin: true, zoomout: true, pan: true, reset: true },
                 },
             },
             title: {
@@ -159,42 +152,16 @@
                 style: { fontSize: '18px', fontWeight: 'bold', color: '#e0e0e0' },
             },
             colors: ['#7dc3ea', '#ffa600', '#f46a64', '#97c786', '#fcaaa6'],
-            legend: {
-                position: 'top',
-                labels: { colors: '#b0c8d8' },
-            },
-            dataLabels: {
-                enabled: false,
-            },
-            plotOptions: {
-                bar: {
-                    horizontal: false,
-                    columnWidth: '55%',
-                    endingShape: 'rounded',
-                },
-            },
-            stroke: {
-                show: true,
-                width: 1,
-                colors: ['transparent'],
-            },
+            legend: { position: 'top', labels: { colors: '#b0c8d8' } },
+            dataLabels: { enabled: false },
+            plotOptions: { bar: { horizontal: false, columnWidth: '55%', endingShape: 'rounded' } },
+            stroke: { show: true, width: 1, colors: ['transparent'] },
             grid: { borderColor: '#2a3a4a' },
             xaxis: {
                 type: 'category',
                 title: { text: '报告期', style: { color: '#b0c8d8' } },
-                labels: {
-                    style: { colors: '#b0c8d8' },
-                    formatter: function (val) {
-                        return val;
-                    },
-                },
-                group: {
-                    style: {
-                        fontSize: '10px',
-                        fontWeight: 700,
-                    },
-                    groups: groups,
-                },
+                labels: { style: { colors: '#b0c8d8' }, formatter: function (val) { return val; } },
+                group: { style: { fontSize: '10px', fontWeight: 700 }, groups: groups },
             },
             yaxis: {
                 title: { text: '金额(人民币)', style: { color: '#b0c8d8' } },
@@ -208,22 +175,10 @@
                 },
             },
             series: [
-                {
-                    name: '营收',
-                    data: revenueSeries,
-                },
-                {
-                    name: '毛利',
-                    data: grossProfitSeries,
-                },
-                {
-                    name: '净利润',
-                    data: profitAttrSeries,
-                },
-                {
-                    name: '扣非净利润',
-                    data: adjustedProfitAttrSeries,
-                },
+                { name: '营收', data: revenueSeries },
+                { name: '毛利', data: grossProfitSeries },
+                { name: '净利润', data: profitAttrSeries },
+                { name: '扣非净利润', data: adjustedProfitAttrSeries },
             ],
             tooltip: {
                 theme: 'dark',
@@ -250,134 +205,60 @@
             return;
         }
 
-        // 构建 series 数据：使用 { x: period, y: value } 格式
-        const grossProfitMarginSeries = data.map(d => ({ x: d.period, y: d.gross_profit_margin }));
-        const profitAttrMarginSeries = data.map(d => ({ x: d.period, y: d.profit_attr_to_shareholders_margin }));
-        const adjustedProfitAttrMarginSeries = data.map(d => ({ x: d.period, y: d.adjusted_profit_attr_to_shareholders_margin }));
-
-        // 构建 xaxis groups：按 report_year 分组，cols = 当前选中的财报类型数量
-        const colsPerYear = selectedPeriods.size;
-        const groups = [];
-        const seenYears = new Set();
-        data.forEach(d => {
-            if (!seenYears.has(d.report_year)) {
-                seenYears.add(d.report_year);
-                groups.push({ title: String(d.report_year), cols: colsPerYear });
-            }
-        });
+        const categories = data.map(d => d.report_year + ' ' + d.period);
+        const grossProfitMarginSeries = data.map(d => d.gross_profit_margin);
+        const profitAttrMarginSeries = data.map(d => d.profit_attr_to_shareholders_margin);
+        const adjustedProfitAttrMarginSeries = data.map(d => d.adjusted_profit_attr_to_shareholders_margin);
 
         const options = {
             chart: {
-                type: 'bar',
                 height: 600,
+                type: 'line',
                 background: 'transparent',
                 foreColor: '#b0c8d8',
-                zoom: { enabled: true },
-                toolbar: {
-                    show: true,
-                    tools: {
-                        download: true,
-                        selection: true,
-                        zoom: true,
-                        zoomin: true,
-                        zoomout: true,
-                        pan: true,
-                        reset: true,
-                    },
+                dropShadow: {
+                    enabled: true,
+                    color: '#000',
+                    top: 18,
+                    left: 7,
+                    blur: 10,
+                    opacity: 0.5,
                 },
+                zoom: { enabled: false },
+                toolbar: { show: false },
             },
+            dataLabels: { enabled: true },
+            stroke: { curve: 'smooth' },
             title: {
                 text: '利润率趋势',
                 align: 'center',
                 style: { fontSize: '18px', fontWeight: 'bold', color: '#e0e0e0' },
             },
-            colors: ['#7dc3ea', '#ffa600', '#f46a64', '#97c786', '#fcaaa6'],
-            legend: {
-                position: 'top',
-                labels: { colors: '#b0c8d8' },
-            },
-            dataLabels: {
-                enabled: false,
-            },
-            plotOptions: {
-                bar: {
-                    horizontal: false,
-                    columnWidth: '55%',
-                    endingShape: 'rounded',
+            grid: {
+                borderColor: '#2a3a4a',
+                row: {
+                    colors: ['#1a2a3a', 'transparent'],
+                    opacity: 0.5,
                 },
             },
-            stroke: {
-                show: true,
-                width: 1,
-                colors: ['transparent'],
-            },
-            grid: { borderColor: '#2a3a4a' },
+            markers: { size: 1 },
             xaxis: {
-                type: 'category',
+                categories: categories,
                 title: { text: '报告期', style: { color: '#b0c8d8' } },
-                labels: {
-                    style: { colors: '#b0c8d8' },
-                    formatter: function (val) {
-                        return val;
-                    },
-                },
-                group: {
-                    style: {
-                        fontSize: '10px',
-                        fontWeight: 700,
-                    },
-                    groups: groups,
-                },
+                labels: { style: { colors: '#b0c8d8' } },
             },
             yaxis: {
                 title: { text: '百分比(%)', style: { color: '#b0c8d8' } },
-                labels: {
-                    style: { colors: '#b0c8d8' },
-                    formatter: function (val) {
-                        return val + '%';
-                    },
-                },
+                labels: { style: { colors: '#b0c8d8' }, formatter: function (val) { return val + '%'; } },
             },
+            colors: ['#7dc3ea', '#ffa600', '#f46a64', '#97c786', '#fcaaa6'],
+            legend: { position: 'top', floating: true, labels: { colors: '#b0c8d8' } },
             series: [
-                {
-                    name: '毛利率',
-                    data: grossProfitMarginSeries,
-                },
-                {
-                    name: '净利润率',
-                    data: profitAttrMarginSeries,
-                },
-                {
-                    name: '扣非净利润率',
-                    data: adjustedProfitAttrMarginSeries,
-                },
+                { name: '毛利率', data: grossProfitMarginSeries },
+                { name: '净利润率', data: profitAttrMarginSeries },
+                { name: '扣非净利润率', data: adjustedProfitAttrMarginSeries },
             ],
-            tooltip: {
-                theme: 'dark',
-                y: [
-                    {
-                        title: {
-                            formatter: function (val) {
-                                return val + ' (%)：';
-                            },
-                        },
-                    },
-                    {
-                        title: {
-                            formatter: function (val) {
-                                return val + ' (%)：';
-                            },
-                        },
-                    },
-                    {
-                        title: {
-                            formatter: function (val) {
-                                return val + ' (%)：';
-                            },
-                        },
-                    },
-                ],
-            },
+            tooltip: { theme: 'dark' },
         };
 
         if (marginChart) marginChart.destroy();
@@ -393,13 +274,11 @@
             return;
         }
 
-        // 构建 series 数据：使用 { x: period, y: value } 格式
         const onlineGamesMauSeries = data.map(d => ({ x: d.period, y: d.online_games_mau }));
         const onlineGamesMpuSeries = data.map(d => ({ x: d.period, y: d.online_games_mpu }));
         const taptapChinaAppMauSeries = data.map(d => ({ x: d.period, y: d.taptap_china_app_mau }));
         const taptapInternationalAppMauSeries = data.map(d => ({ x: d.period, y: d.taptap_international_app_mau }));
 
-        // 构建 xaxis groups：按 report_year 分组，cols = 当前选中的财报类型数量
         const colsPerYear = selectedPeriods.size;
         const groups = [];
         const seenYears = new Set();
@@ -419,15 +298,7 @@
                 zoom: { enabled: true },
                 toolbar: {
                     show: true,
-                    tools: {
-                        download: true,
-                        selection: true,
-                        zoom: true,
-                        zoomin: true,
-                        zoomout: true,
-                        pan: true,
-                        reset: true,
-                    },
+                    tools: { download: true, selection: true, zoom: true, zoomin: true, zoomout: true, pan: true, reset: true },
                 },
             },
             title: {
@@ -436,42 +307,16 @@
                 style: { fontSize: '18px', fontWeight: 'bold', color: '#e0e0e0' },
             },
             colors: ['#7dc3ea', '#ffa600', '#f46a64', '#97c786', '#fcaaa6'],
-            legend: {
-                position: 'top',
-                labels: { colors: '#b0c8d8' },
-            },
-            dataLabels: {
-                enabled: false,
-            },
-            plotOptions: {
-                bar: {
-                    horizontal: false,
-                    columnWidth: '55%',
-                    endingShape: 'rounded',
-                },
-            },
-            stroke: {
-                show: true,
-                width: 1,
-                colors: ['transparent'],
-            },
+            legend: { position: 'top', labels: { colors: '#b0c8d8' } },
+            dataLabels: { enabled: false },
+            plotOptions: { bar: { horizontal: false, columnWidth: '55%', endingShape: 'rounded' } },
+            stroke: { show: true, width: 1, colors: ['transparent'] },
             grid: { borderColor: '#2a3a4a' },
             xaxis: {
                 type: 'category',
                 title: { text: '报告期', style: { color: '#b0c8d8' } },
-                labels: {
-                    style: { colors: '#b0c8d8' },
-                    formatter: function (val) {
-                        return val;
-                    },
-                },
-                group: {
-                    style: {
-                        fontSize: '10px',
-                        fontWeight: 700,
-                    },
-                    groups: groups,
-                },
+                labels: { style: { colors: '#b0c8d8' }, formatter: function (val) { return val; } },
+                group: { style: { fontSize: '10px', fontWeight: 700 }, groups: groups },
             },
             yaxis: {
                 title: { text: '用户数', style: { color: '#b0c8d8' } },
@@ -485,22 +330,10 @@
                 },
             },
             series: [
-                {
-                    name: '网络游戏平均月活跃用户',
-                    data: onlineGamesMauSeries,
-                },
-                {
-                    name: '网络游戏平均月付费用户',
-                    data: onlineGamesMpuSeries,
-                },
-                {
-                    name: 'TapTap中国版App平均月活跃用户',
-                    data: taptapChinaAppMauSeries,
-                },
-                {
-                    name: 'TapTap国际版App平均月活跃用户',
-                    data: taptapInternationalAppMauSeries,
-                },
+                { name: '网络游戏平均月活跃用户', data: onlineGamesMauSeries },
+                { name: '网络游戏平均月付费用户', data: onlineGamesMpuSeries },
+                { name: 'TapTap中国版App平均月活跃用户', data: taptapChinaAppMauSeries },
+                { name: 'TapTap国际版App平均月活跃用户', data: taptapInternationalAppMauSeries },
             ],
             tooltip: {
                 theme: 'dark',
@@ -525,80 +358,37 @@
         const startYear = endYear - selectedOffset;
         const periodsArr = Array.from(selectedPeriods);
         return apiGet('/xd/core-operational-report', {
-            start_year: startYear,
-            end_year: endYear,
+            start_year: startYear, end_year: endYear,
             period: periodsArr.length > 0 ? periodsArr : undefined,
         });
     }
 
-    // ==================== 费用数据图表渲染 ====================
-    function renderExpenseChart(data) {
-        const container = $('#chartExpense');
-        if (!data || data.length === 0) {
+    // ==================== 通用费用图表渲染函数 ====================
+    function renderExpenseLineChart(containerId, chartRef, title, amountSeries, ratioSeries, amountName, ratioName) {
+        const container = $('#' + containerId);
+        if (!container) return;
+        if (!amountSeries || amountSeries.length === 0) {
             container.innerHTML = '<div style="text-align:center;padding:60px;color:#7a9ab0;">暂无数据</div>';
             return;
         }
-
-        // 构建 labels：report_year + period
-        const labels = data.map(d => d.report_year + ' ' + d.period);
-
-        // 构建 series 数据：简单值数组
-        const sellingMarketingSeries = data.map(d => d.selling_and_marketing_expenses);
-        const rdSeries = data.map(d => d.research_and_development_expenses);
-        const gaSeries = data.map(d => d.general_and_administrative_expenses);
-        const sellingMarketingRatioSeries = data.map(d => d.selling_and_marketing_expenses_ratio);
-        const rdRatioSeries = data.map(d => d.research_and_development_expenses_ratio);
-        const gaRatioSeries = data.map(d => d.general_and_administrative_expenses_ratio);
-
         const options = {
             chart: {
-                type: 'line',
-                height: 600,
-                stacked: false,
-                background: 'transparent',
-                foreColor: '#b0c8d8',
+                type: 'line', height: 600, stacked: false,
+                background: 'transparent', foreColor: '#b0c8d8',
                 zoom: { enabled: true },
-                toolbar: {
-                    show: true,
-                    tools: {
-                        download: true,
-                        selection: true,
-                        zoom: true,
-                        zoomin: true,
-                        zoomout: true,
-                        pan: true,
-                        reset: true,
-                    },
-                },
+                toolbar: { show: true, tools: { download: true, selection: true, zoom: true, zoomin: true, zoomout: true, pan: true, reset: true } },
             },
-            title: {
-                text: '费用数据',
-                align: 'center',
-                style: { fontSize: '18px', fontWeight: 'bold', color: '#e0e0e0' },
-            },
+            title: { text: title, align: 'center', style: { fontSize: '18px', fontWeight: 'bold', color: '#e0e0e0' } },
             colors: ['#7dc3ea', '#ffa600', '#f46a64', '#97c786', '#fcaaa6', '#375093'],
-            dataLabels: {
-                enabled: false,
-            },
-            legend: {
-                position: 'top',
-                labels: { colors: '#b0c8d8' },
-            },
-            labels: labels,
-            stroke: {
-                width: [0, 4, 0, 4, 0, 4],
-            },
+            dataLabels: { enabled: false },
+            legend: { position: 'top', labels: { colors: '#b0c8d8' } },
+            labels: amountSeries.map(d => d.report_year + ' ' + d.period),
+            stroke: { width: [0, 4] },
             grid: { borderColor: '#2a3a4a' },
-            xaxis: {
-                type: 'category',
-                title: { text: '报告期', style: { color: '#b0c8d8' } },
-                labels: {
-                    style: { colors: '#b0c8d8' },
-                },
-            },
+            xaxis: { type: 'category', title: { text: '报告期', style: { color: '#b0c8d8' } }, labels: { style: { colors: '#b0c8d8' } } },
             yaxis: [
                 {
-                    title: { text: '销售及营销开支(人民币)', style: { color: '#b0c8d8' } },
+                    title: { text: amountName + '(人民币)', style: { color: '#b0c8d8' } },
                     labels: {
                         style: { colors: '#b0c8d8' },
                         formatter: function (val) {
@@ -610,97 +400,42 @@
                 },
                 {
                     opposite: true,
-                    title: { text: '销售及营销开支占比(%)', style: { color: '#b0c8d8' } },
-                    labels: {
-                        style: { colors: '#b0c8d8' },
-                        formatter: function (val) {
-                            return val + '%';
-                        },
-                    },
-                },
-                {
-                    title: { text: '研发开支(人民币)', style: { color: '#b0c8d8' } },
-                    labels: {
-                        style: { colors: '#b0c8d8' },
-                        formatter: function (val) {
-                            if (Math.abs(val) >= 1000000) return (val / 1000000).toFixed(1) + 'B';
-                            if (Math.abs(val) >= 1000) return (val / 1000).toFixed(1) + 'M';
-                            return val;
-                        },
-                    },
-                },
-                {
-                    opposite: true,
-                    title: { text: '研发开支占比(%)', style: { color: '#b0c8d8' } },
-                    labels: {
-                        style: { colors: '#b0c8d8' },
-                        formatter: function (val) {
-                            return val + '%';
-                        },
-                    },
-                },
-                {
-                    title: { text: '一般及行政开支(人民币)', style: { color: '#b0c8d8' } },
-                    labels: {
-                        style: { colors: '#b0c8d8' },
-                        formatter: function (val) {
-                            if (Math.abs(val) >= 1000000) return (val / 1000000).toFixed(1) + 'B';
-                            if (Math.abs(val) >= 1000) return (val / 1000).toFixed(1) + 'M';
-                            return val;
-                        },
-                    },
-                },
-                {
-                    opposite: true,
-                    title: { text: '一般及行政开支占比(%)', style: { color: '#b0c8d8' } },
-                    labels: {
-                        style: { colors: '#b0c8d8' },
-                        formatter: function (val) {
-                            return val + '%';
-                        },
-                    },
+                    title: { text: ratioName + '占比(%)', style: { color: '#b0c8d8' } },
+                    labels: { style: { colors: '#b0c8d8' }, formatter: function (val) { return val + '%'; } },
                 },
             ],
             series: [
-                {
-                    name: '销售及营销开支',
-                    type: 'column',
-                    data: sellingMarketingSeries,
-                },
-                {
-                    name: '销售及营销开支占比(%)',
-                    type: 'line',
-                    data: sellingMarketingRatioSeries,
-                },
-                {
-                    name: '研发开支',
-                    type: 'column',
-                    data: rdSeries,
-                },
-                {
-                    name: '研发开支占比(%)',
-                    type: 'line',
-                    data: rdRatioSeries,
-                },
-                {
-                    name: '一般及行政开支',
-                    type: 'column',
-                    data: gaSeries,
-                },
-                {
-                    name: '一般及行政开支占比(%)',
-                    type: 'line',
-                    data: gaRatioSeries,
-                },
+                { name: amountName, type: 'column', data: amountSeries.map(d => d.y) },
+                { name: ratioName + '占比(%)', type: 'line', data: ratioSeries.map(d => d.y) },
             ],
-            tooltip: {
-                theme: 'dark',
-            },
+            tooltip: { theme: 'dark' },
         };
+        if (chartRef.obj) chartRef.obj.destroy();
+        chartRef.obj = new ApexCharts(container, options);
+        chartRef.obj.render();
+    }
 
-        if (expenseChart) expenseChart.destroy();
-        expenseChart = new ApexCharts(container, options);
-        expenseChart.render();
+    // ==================== 费用数据渲染 ====================
+    function renderAllExpenseCharts(data) {
+        const totalAmount = data.map(d => ({
+            report_year: d.report_year, period: d.period,
+            y: d.selling_and_marketing_expenses + d.research_and_development_expenses + d.general_and_administrative_expenses,
+        }));
+        const totalRatio = data.map(d => ({
+            report_year: d.report_year, period: d.period,
+            y: d.selling_and_marketing_expenses_ratio + d.research_and_development_expenses_ratio + d.general_and_administrative_expenses_ratio,
+        }));
+        const smAmount = data.map(d => ({ report_year: d.report_year, period: d.period, y: d.selling_and_marketing_expenses }));
+        const smRatio = data.map(d => ({ report_year: d.report_year, period: d.period, y: d.selling_and_marketing_expenses_ratio }));
+        const rdAmount = data.map(d => ({ report_year: d.report_year, period: d.period, y: d.research_and_development_expenses }));
+        const rdRatio = data.map(d => ({ report_year: d.report_year, period: d.period, y: d.research_and_development_expenses_ratio }));
+        const gaAmount = data.map(d => ({ report_year: d.report_year, period: d.period, y: d.general_and_administrative_expenses }));
+        const gaRatio = data.map(d => ({ report_year: d.report_year, period: d.period, y: d.general_and_administrative_expenses_ratio }));
+
+        renderExpenseLineChart('chartTotalExpense', totalExpenseChart, '总费用', totalAmount, totalRatio, '总费用', '总费用');
+        renderExpenseLineChart('chartSellingMarketing', sellingMarketingChart, '销售及营销开支', smAmount, smRatio, '销售及营销开支', '销售及营销开支');
+        renderExpenseLineChart('chartRd', rdChart, '研发开支', rdAmount, rdRatio, '研发开支', '研发开支');
+        renderExpenseLineChart('chartGa', gaChart, '一般及行政开支', gaAmount, gaRatio, '一般及行政开支', '一般及行政开支');
     }
 
     // ==================== 费用数据获取 ====================
@@ -709,8 +444,7 @@
         const startYear = endYear - selectedOffset;
         const periodsArr = Array.from(selectedPeriods);
         return apiGet('/xd/expense-report', {
-            start_year: startYear,
-            end_year: endYear,
+            start_year: startYear, end_year: endYear,
             period: periodsArr.length > 0 ? periodsArr : undefined,
         });
     }
@@ -722,66 +456,26 @@
             container.innerHTML = '<div style="text-align:center;padding:60px;color:#7a9ab0;">暂无数据</div>';
             return;
         }
-
-        // 构建 categories：report_year + period
         const categories = data.map(d => d.report_year + ' ' + d.period);
-
         const gameRevenueSeries = data.map(d => d.game_revenue);
         const taptapRevenueSeries = data.map(d => d.taptap_platform_revenue);
-
         const options = {
             chart: {
-                type: 'bar',
-                height: 600,
-                width: '100%',
-                stacked: true,
-                stackType: '100%',
-                background: 'transparent',
-                foreColor: '#b0c8d8',
-                toolbar: {
-                    show: true,
-                    tools: {
-                        download: true,
-                        selection: true,
-                        zoom: true,
-                        zoomin: true,
-                        zoomout: true,
-                        pan: true,
-                        reset: true,
-                    },
-                },
+                type: 'bar', height: 600, width: '100%',
+                stacked: true, stackType: '100%',
+                background: 'transparent', foreColor: '#b0c8d8',
+                toolbar: { show: true, tools: { download: true, selection: true, zoom: true, zoomin: true, zoomout: true, pan: true, reset: true } },
             },
-            title: {
-                text: '业务收入占比',
-                align: 'center',
-                style: { fontSize: '18px', fontWeight: 'bold', color: '#e0e0e0' },
-            },
+            title: { text: '业务收入占比', align: 'center', style: { fontSize: '18px', fontWeight: 'bold', color: '#e0e0e0' } },
             colors: ['#7dc3ea', '#ffa600', '#f46a64', '#97c786', '#fcaaa6', '#375093'],
-            legend: {
-                position: 'top',
-                labels: { colors: '#b0c8d8' },
-            },
-            stroke: {
-                width: 1,
-                colors: ['#fff'],
-            },
-            fill: {
-                opacity: 1,
-            },
+            legend: { position: 'top', labels: { colors: '#b0c8d8' } },
+            stroke: { width: 1, colors: ['#fff'] },
+            fill: { opacity: 1 },
             grid: { borderColor: '#2a3a4a' },
-            xaxis: {
-                categories: categories,
-                title: { text: '报告期', style: { color: '#b0c8d8' } },
-                labels: { style: { colors: '#b0c8d8' } },
-            },
+            xaxis: { categories: categories, title: { text: '报告期', style: { color: '#b0c8d8' } }, labels: { style: { colors: '#b0c8d8' } } },
             yaxis: {
                 title: { text: '占比(%)', style: { color: '#b0c8d8' } },
-                labels: {
-                    style: { colors: '#b0c8d8' },
-                    formatter: function (val) {
-                        return val + '%';
-                    },
-                },
+                labels: { style: { colors: '#b0c8d8' }, formatter: function (val) { return val + '%'; } },
             },
             series: [
                 { name: '游戏收入', data: gameRevenueSeries },
@@ -789,7 +483,6 @@
             ],
             tooltip: { theme: 'dark' },
         };
-
         if (revenueShareChart) revenueShareChart.destroy();
         revenueShareChart = new ApexCharts(container, options);
         revenueShareChart.render();
@@ -802,83 +495,35 @@
             container.innerHTML = '<div style="text-align:center;padding:60px;color:#7a9ab0;">暂无数据</div>';
             return;
         }
-
-        // 构建 categories：report_year + period
         const categories = data.map(d => d.report_year + ' ' + d.period);
-
         const gameMarginSeries = data.map(d => d.game_gross_profit_margin);
         const taptapMarginSeries = data.map(d => d.taptap_platform_gross_profit_margin);
-
         const options = {
             chart: {
-                height: 600,
-                type: 'line',
-                background: 'transparent',
-                foreColor: '#b0c8d8',
-                dropShadow: {
-                    enabled: true,
-                    color: '#000',
-                    top: 18,
-                    left: 7,
-                    blur: 10,
-                    opacity: 0.5,
-                },
+                height: 600, type: 'line',
+                background: 'transparent', foreColor: '#b0c8d8',
+                dropShadow: { enabled: true, color: '#000', top: 18, left: 7, blur: 10, opacity: 0.5 },
                 zoom: { enabled: false },
-                toolbar: {
-                    show: true,
-                    tools: {
-                        download: true,
-                        selection: true,
-                        zoom: true,
-                        zoomin: true,
-                        zoomout: true,
-                        pan: true,
-                        reset: true,
-                    },
-                },
+                toolbar: { show: true, tools: { download: true, selection: true, zoom: true, zoomin: true, zoomout: true, pan: true, reset: true } },
             },
             dataLabels: { enabled: true },
             stroke: { curve: 'smooth' },
-            title: {
-                text: '业务毛利率趋势',
-                align: 'center',
-                style: { fontSize: '18px', fontWeight: 'bold', color: '#e0e0e0' },
-            },
-            grid: {
-                borderColor: '#2a3a4a',
-                row: {
-                    colors: ['#1a2a3a', 'transparent'],
-                    opacity: 0.5,
-                },
-            },
+            title: { text: '业务毛利率趋势', align: 'center', style: { fontSize: '18px', fontWeight: 'bold', color: '#e0e0e0' } },
+            grid: { borderColor: '#2a3a4a', row: { colors: ['#1a2a3a', 'transparent'], opacity: 0.5 } },
             markers: { size: 1 },
-            xaxis: {
-                categories: categories,
-                title: { text: '报告期', style: { color: '#b0c8d8' } },
-                labels: { style: { colors: '#b0c8d8' } },
-            },
+            xaxis: { categories: categories, title: { text: '报告期', style: { color: '#b0c8d8' } }, labels: { style: { colors: '#b0c8d8' } } },
             yaxis: {
                 title: { text: '毛利率(%)', style: { color: '#b0c8d8' } },
-                labels: {
-                    style: { colors: '#b0c8d8' },
-                    formatter: function (val) {
-                        return val + '%';
-                    },
-                },
+                labels: { style: { colors: '#b0c8d8' }, formatter: function (val) { return val + '%'; } },
             },
             colors: ['#7dc3ea', '#ffa600', '#f46a64', '#97c786', '#fcaaa6', '#375093'],
-            legend: {
-                position: 'top',
-                floating: true,
-                labels: { colors: '#b0c8d8' },
-            },
+            legend: { position: 'top', floating: true, labels: { colors: '#b0c8d8' } },
             series: [
                 { name: '游戏业务毛利率(%)', data: gameMarginSeries },
                 { name: 'TapTap业务毛利率(%)', data: taptapMarginSeries },
             ],
             tooltip: { theme: 'dark' },
         };
-
         if (businessMarginChart) businessMarginChart.destroy();
         businessMarginChart = new ApexCharts(container, options);
         businessMarginChart.render();
@@ -891,71 +536,39 @@
             container.innerHTML = '<div style="text-align:center;padding:60px;color:#7a9ab0;">暂无数据</div>';
             return;
         }
-
         const categories = data.map(d => d.report_year + ' ' + d.period);
-
         const onlineGameSeries = data.map(d => d.online_game_revenue);
         const paidGameSeries = data.map(d => d.paid_game_revenue);
         const otherGameSeries = data.map(d => d.other_game_revenue);
-
         const options = {
             chart: {
-                type: 'bar',
-                height: 600,
-                stacked: true,
-                background: 'transparent',
-                foreColor: '#b0c8d8',
-                zoom: { enabled: true },
-                toolbar: { show: true },
+                type: 'bar', height: 600, stacked: true,
+                background: 'transparent', foreColor: '#b0c8d8',
+                zoom: { enabled: true }, toolbar: { show: true },
             },
-            title: {
-                text: '游戏业务收入分类',
-                align: 'center',
-                style: { fontSize: '18px', fontWeight: 'bold', color: '#e0e0e0' },
-            },
+            title: { text: '游戏业务收入分类', align: 'center', style: { fontSize: '18px', fontWeight: 'bold', color: '#e0e0e0' } },
             colors: ['#7dc3ea', '#ffa600', '#f46a64', '#97c786', '#fcaaa6'],
-            legend: {
-                position: 'top',
-                labels: { colors: '#b0c8d8' },
-            },
-            responsive: [
-                {
-                    breakpoint: 480,
-                    options: {
-                        legend: { position: 'bottom', offsetX: -10, offsetY: 0 },
-                    },
-                },
-            ],
-            plotOptions: {
-                bar: {
-                    horizontal: false,
-                    dataLabels: {
-                        total: {
-                            enabled: true,
-                            style: { fontSize: '13px', fontWeight: 900 },
-                            formatter: function (val) {
-                                if (Math.abs(val) >= 1000000) return (val / 1000000).toFixed(1) + 'B';
-                                if (Math.abs(val) >= 1000) return (val / 1000).toFixed(1) + 'M';
-                                return val;
-                            },
-                        },
-                    },
+            legend: { position: 'top', labels: { colors: '#b0c8d8' } },
+            responsive: [{ breakpoint: 480, options: { legend: { position: 'bottom', offsetX: -10, offsetY: 0 } } }],
+            dataLabels: {
+                enabled: true,
+                formatter: function (val) {
+                    if (Math.abs(val) >= 1000000) return (val / 1000000).toFixed(2) + 'B';
+                    if (Math.abs(val) >= 1000) return (val / 1000).toFixed(2) + 'M';
+                    return val;
                 },
             },
+            plotOptions: { bar: { horizontal: false, dataLabels: { total: { enabled: true, style: { fontSize: '13px', fontWeight: 900 } } } } },
             fill: { opacity: 1 },
             grid: { borderColor: '#2a3a4a' },
-            xaxis: {
-                categories: categories,
-                title: { text: '报告期', style: { color: '#b0c8d8' } },
-                labels: { style: { colors: '#b0c8d8' } },
-            },
+            xaxis: { categories: categories, title: { text: '报告期', style: { color: '#b0c8d8' } }, labels: { style: { colors: '#b0c8d8' } } },
             yaxis: {
                 title: { text: '金额(人民币)', style: { color: '#b0c8d8' } },
                 labels: {
                     style: { colors: '#b0c8d8' },
                     formatter: function (val) {
-                        if (Math.abs(val) >= 1000000) return (val / 1000000).toFixed(1) + 'B';
-                        if (Math.abs(val) >= 1000) return (val / 1000).toFixed(1) + 'M';
+                        if (Math.abs(val) >= 1000000) return (val / 1000000).toFixed(2) + 'B';
+                        if (Math.abs(val) >= 1000) return (val / 1000).toFixed(2) + 'M';
                         return val;
                     },
                 },
@@ -967,7 +580,6 @@
             ],
             tooltip: { theme: 'dark' },
         };
-
         if (gameRevenueCategoryChart) gameRevenueCategoryChart.destroy();
         gameRevenueCategoryChart = new ApexCharts(container, options);
         gameRevenueCategoryChart.render();
@@ -980,70 +592,38 @@
             container.innerHTML = '<div style="text-align:center;padding:60px;color:#7a9ab0;">暂无数据</div>';
             return;
         }
-
         const categories = data.map(d => d.report_year + ' ' + d.period);
-
         const grossBasisSeries = data.map(d => d.gross_basis_revenue);
         const netBasisSeries = data.map(d => d.net_basis_revenue);
-
         const options = {
             chart: {
-                type: 'bar',
-                height: 600,
-                stacked: true,
-                background: 'transparent',
-                foreColor: '#b0c8d8',
-                zoom: { enabled: true },
-                toolbar: { show: true },
+                type: 'bar', height: 600, stacked: true,
+                background: 'transparent', foreColor: '#b0c8d8',
+                zoom: { enabled: true }, toolbar: { show: true },
             },
-            title: {
-                text: '游戏业务按收入確認方法分类',
-                align: 'center',
-                style: { fontSize: '18px', fontWeight: 'bold', color: '#e0e0e0' },
-            },
+            title: { text: '游戏业务按收入確認方法分类', align: 'center', style: { fontSize: '18px', fontWeight: 'bold', color: '#e0e0e0' } },
             colors: ['#7dc3ea', '#ffa600', '#f46a64', '#97c786', '#fcaaa6'],
-            legend: {
-                position: 'top',
-                labels: { colors: '#b0c8d8' },
-            },
-            responsive: [
-                {
-                    breakpoint: 480,
-                    options: {
-                        legend: { position: 'bottom', offsetX: -10, offsetY: 0 },
-                    },
-                },
-            ],
-            plotOptions: {
-                bar: {
-                    horizontal: false,
-                    dataLabels: {
-                        total: {
-                            enabled: true,
-                            style: { fontSize: '13px', fontWeight: 900 },
-                            formatter: function (val) {
-                                if (Math.abs(val) >= 1000000) return (val / 1000000).toFixed(1) + 'B';
-                                if (Math.abs(val) >= 1000) return (val / 1000).toFixed(1) + 'M';
-                                return val;
-                            },
-                        },
-                    },
+            legend: { position: 'top', labels: { colors: '#b0c8d8' } },
+            responsive: [{ breakpoint: 480, options: { legend: { position: 'bottom', offsetX: -10, offsetY: 0 } } }],
+            dataLabels: {
+                enabled: true,
+                formatter: function (val) {
+                    if (Math.abs(val) >= 1000000) return (val / 1000000).toFixed(2) + 'B';
+                    if (Math.abs(val) >= 1000) return (val / 1000).toFixed(2) + 'M';
+                    return val;
                 },
             },
+            plotOptions: { bar: { horizontal: false, dataLabels: { total: { enabled: true, style: { fontSize: '13px', fontWeight: 900 } } } } },
             fill: { opacity: 1 },
             grid: { borderColor: '#2a3a4a' },
-            xaxis: {
-                categories: categories,
-                title: { text: '报告期', style: { color: '#b0c8d8' } },
-                labels: { style: { colors: '#b0c8d8' } },
-            },
+            xaxis: { categories: categories, title: { text: '报告期', style: { color: '#b0c8d8' } }, labels: { style: { colors: '#b0c8d8' } } },
             yaxis: {
                 title: { text: '金额(人民币)', style: { color: '#b0c8d8' } },
                 labels: {
                     style: { colors: '#b0c8d8' },
                     formatter: function (val) {
-                        if (Math.abs(val) >= 1000000) return (val / 1000000).toFixed(1) + 'B';
-                        if (Math.abs(val) >= 1000) return (val / 1000).toFixed(1) + 'M';
+                        if (Math.abs(val) >= 1000000) return (val / 1000000).toFixed(2) + 'B';
+                        if (Math.abs(val) >= 1000) return (val / 1000).toFixed(2) + 'M';
                         return val;
                     },
                 },
@@ -1054,7 +634,6 @@
             ],
             tooltip: { theme: 'dark' },
         };
-
         if (gameRevenueMethodChart) gameRevenueMethodChart.destroy();
         gameRevenueMethodChart = new ApexCharts(container, options);
         gameRevenueMethodChart.render();
@@ -1066,8 +645,7 @@
         const startYear = endYear - selectedOffset;
         const periodsArr = Array.from(selectedPeriods);
         return apiGet('/xd/revenue-game-report', {
-            start_year: startYear,
-            end_year: endYear,
+            start_year: startYear, end_year: endYear,
             period: periodsArr.length > 0 ? periodsArr : undefined,
         });
     }
@@ -1078,8 +656,142 @@
         const startYear = endYear - selectedOffset;
         const periodsArr = Array.from(selectedPeriods);
         return apiGet('/xd/revenue-report', {
-            start_year: startYear,
-            end_year: endYear,
+            start_year: startYear, end_year: endYear,
+            period: periodsArr.length > 0 ? periodsArr : undefined,
+        });
+    }
+
+    // ==================== 资产负债 - 合同负债折线图 ====================
+    function renderContractLiabilitiesChart(data) {
+        const container = $('#chartContractLiabilities');
+        if (!data || data.length === 0) {
+            container.innerHTML = '<div style="text-align:center;padding:60px;color:#7a9ab0;">暂无数据</div>';
+            return;
+        }
+        const categories = data.map(d => d.report_year + ' ' + d.period);
+        const contractLiabilitiesSeries = data.map(d => d.contract_liabilities);
+        const options = {
+            chart: {
+                height: 600, type: 'line',
+                background: 'transparent', foreColor: '#b0c8d8',
+                dropShadow: { enabled: true, color: '#000', top: 18, left: 7, blur: 10, opacity: 0.5 },
+                zoom: { enabled: false },
+                toolbar: { show: false },
+            },
+            title: { text: '合同负债', align: 'center', style: { fontSize: '18px', fontWeight: 'bold', color: '#e0e0e0' } },
+            colors: ['#7dc3ea', '#ffa600', '#f46a64', '#97c786', '#fcaaa6'],
+            dataLabels: {
+                enabled: true,
+                formatter: function (val) {
+                    if (Math.abs(val) >= 1000000) return (val / 1000000).toFixed(2) + 'B';
+                    if (Math.abs(val) >= 1000) return (val / 1000).toFixed(2) + 'M';
+                    return val;
+                },
+            },
+            grid: { borderColor: '#2a3a4a', row: { colors: ['#1a2a3a', 'transparent'], opacity: 0.5 } },
+            markers: { size: 1 },
+            xaxis: { categories: categories, title: { text: '报告期', style: { color: '#b0c8d8' } }, labels: { style: { colors: '#b0c8d8' } } },
+            yaxis: {
+                title: { text: '合同负债(人民币)', style: { color: '#b0c8d8' } },
+                labels: {
+                    style: { colors: '#b0c8d8' },
+                    formatter: function (val) {
+                        if (Math.abs(val) >= 1000000) return (val / 1000000).toFixed(1) + 'B';
+                        if (Math.abs(val) >= 1000) return (val / 1000).toFixed(1) + 'M';
+                        return val;
+                    },
+                },
+            },
+            legend: { position: 'top', floating: true, labels: { colors: '#b0c8d8' } },
+            series: [{ name: '合同负债(人民币)', data: contractLiabilitiesSeries }],
+            tooltip: { theme: 'dark' },
+        };
+        if (contractLiabilitiesChart) contractLiabilitiesChart.destroy();
+        contractLiabilitiesChart = new ApexCharts(container, options);
+        contractLiabilitiesChart.render();
+    }
+
+    // ==================== 资产负债 - 现金及其等价物 ====================
+    function renderCashEquivalentsChart(data) {
+        const container = $('#chartCashEquivalents');
+        if (!data || data.length === 0) {
+            container.innerHTML = '<div style="text-align:center;padding:60px;color:#7a9ab0;">暂无数据</div>';
+            return;
+        }
+        const categories = data.map(d => d.report_year + ' ' + d.period);
+        const cashSeries = data.map(d => d.cash_and_cash_equivalents);
+        const liabilitiesSeries = data.map(d => d.total_liabilities);
+        const netCashSeries = data.map(d => d.cash_and_cash_equivalents - d.total_liabilities - d.contract_liabilities);
+        const options = {
+            chart: {
+                height: 600, type: 'line', stacked: false,
+                background: 'transparent', foreColor: '#b0c8d8',
+                toolbar: {
+                    show: true,
+                    tools: { download: true, selection: true, zoom: true, zoomin: true, zoomout: true, pan: true, reset: true },
+                },
+            },
+            title: { text: '现金及其等价物', align: 'center', style: { fontSize: '18px', fontWeight: 'bold', color: '#e0e0e0' } },
+            colors: ['#7dc3ea', '#ffa600', '#f46a64', '#97c786', '#fcaaa6'],
+            stroke: { width: [0, 2, 5], curve: 'smooth' },
+            plotOptions: { bar: { columnWidth: '50%' } },
+            fill: {
+                opacity: [0.85, 0.25, 1],
+                gradient: { inverseColors: false, shade: 'light', type: 'vertical', opacityFrom: 0.85, opacityTo: 0.55, stops: [0, 100, 100, 100] },
+            },
+            markers: { size: 0 },
+            dataLabels: {
+                enabled: true,
+                formatter: function (val) {
+                    if (Math.abs(val) >= 1000000) return (val / 1000000).toFixed(2) + 'B';
+                    if (Math.abs(val) >= 1000) return (val / 1000).toFixed(2) + 'M';
+                    return val;
+                },
+            },
+            xaxis: { categories: categories, title: { text: '报告期', style: { color: '#b0c8d8' } }, labels: { style: { colors: '#b0c8d8' } } },
+            yaxis: {
+                title: { text: '金额(人民币)', style: { color: '#b0c8d8' } },
+                labels: {
+                    style: { colors: '#b0c8d8' },
+                    formatter: function (val) {
+                        if (Math.abs(val) >= 1000000) return (val / 1000000).toFixed(2) + 'B';
+                        if (Math.abs(val) >= 1000) return (val / 1000).toFixed(2) + 'M';
+                        return val;
+                    },
+                },
+            },
+            tooltip: {
+                shared: true, intersect: false,
+                y: {
+                    formatter: function (y) {
+                        if (typeof y !== 'undefined') {
+                            if (Math.abs(y) >= 1000000) return (y / 1000000).toFixed(2) + 'B';
+                            if (Math.abs(y) >= 1000) return (y / 1000).toFixed(2) + 'M';
+                            return y.toFixed(0);
+                        }
+                        return y;
+                    },
+                },
+            },
+            legend: { position: 'top', labels: { colors: '#b0c8d8' } },
+            series: [
+                { name: '现金及现金等价物(人民币)', type: 'column', data: cashSeries },
+                { name: '负债(人民币)', type: 'column', data: liabilitiesSeries },
+                { name: '净现金(人民币)', type: 'line', data: netCashSeries },
+            ],
+        };
+        if (cashEquivalentsChart) cashEquivalentsChart.destroy();
+        cashEquivalentsChart = new ApexCharts(container, options);
+        cashEquivalentsChart.render();
+    }
+
+    // ==================== 资产负债数据获取 ====================
+    async function fetchBalanceData() {
+        const endYear = getCurrentYear();
+        const startYear = endYear - selectedOffset;
+        const periodsArr = Array.from(selectedPeriods);
+        return apiGet('/xd/balance-report', {
+            start_year: startYear, end_year: endYear,
             period: periodsArr.length > 0 ? periodsArr : undefined,
         });
     }
@@ -1093,26 +805,27 @@
             const operationalData = await fetchOperationalData();
             renderOperationalChart(operationalData);
             const expenseData = await fetchExpenseData();
-            renderExpenseChart(expenseData);
+            renderAllExpenseCharts(expenseData);
             const revenueData = await fetchRevenueData();
             renderRevenueShareChart(revenueData);
             renderBusinessMarginChart(revenueData);
             const gameRevenueData = await fetchGameRevenueData();
             renderGameRevenueCategoryChart(gameRevenueData);
             renderGameRevenueMethodChart(gameRevenueData);
+            const balanceData = await fetchBalanceData();
+            renderContractLiabilitiesChart(balanceData);
+            renderCashEquivalentsChart(balanceData);
         } catch (err) {
             console.error('刷新图表失败:', err);
             const errHtml = '<div style="text-align:center;padding:60px;color:#f46a64;">数据加载失败，请稍后重试</div>';
-            ['chartFinancial', 'chartMargin', 'chartOperational', 'chartExpense', 'chartRevenueShare', 'chartBusinessMargin', 'chartGameRevenueCategory', 'chartGameRevenueMethod'].forEach(id => {
+            ['chartFinancial', 'chartMargin', 'chartOperational', 'chartTotalExpense', 'chartSellingMarketing', 'chartRd', 'chartGa', 'chartRevenueShare', 'chartBusinessMargin', 'chartGameRevenueCategory', 'chartGameRevenueMethod', 'chartContractLiabilities', 'chartCashEquivalents'].forEach(id => {
                 const el = $('#' + id);
                 if (el) el.innerHTML = errHtml;
             });
         }
     }
 
-    function refreshChart() {
-        refreshCharts();
-    }
+    function refreshChart() { refreshCharts(); }
 
     // ==================== 初始化 ====================
     function init() {

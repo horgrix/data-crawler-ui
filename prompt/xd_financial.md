@@ -20,12 +20,13 @@ end_year = 今年的年份，start_year = end_year - offset
 ### 财报类型选择
 类型选择按钮：H1(上半年) period=H1、H2(下半年) period = H2、FY(全年) period = FY
 展示方式：平铺开
-默认全选，任何时候都必须有一个被选中
+默认选中，任何时候都必须有一个被选中
 ## 图表
 
 
 # 图表
 ## 财务指标（收入、毛利、溢利）
+下面2个图表以1排2列展示
 ### 使用图表：bar
 title：财务指标（收入、毛利、溢利）
 chart: {
@@ -90,113 +91,71 @@ series: [
       ]
     },
   ]
-### 数据获取
-数据从 /xd/core-financial-report 获取
-参数：
-start_year 查询条件的年份选择start_year
-end_year 查询条件的年份选择end_year
-period 查询条件的财报类型选择period，该参数支持多值查询, 
-返回的数据结构：
-[
-  {
-    "id": 13,
-    "report_year": 2025,
-    "period": "H1",
-    "revenue": 3081986,
-    "gross_profit": 2252758,
-    "gross_profit_margin": 73.1,
-    "profit_for_year": 810596,
-    "profit_for_year_margin": 26.3,
-    "profit_attr_to_shareholders": 754856,
-    "profit_attr_to_shareholders_margin": 24.49,
-    "adjusted_profit_for_year": 852855,
-    "adjusted_profit_for_year_margin": 27.67,
-    "adjusted_profit_attr_to_shareholders": 795650,
-    "adjusted_profit_attr_to_shareholders_margin": 25.81,
-    "created_at": "2026-06-22 20:24:35",
-    "updated_at": "2026-06-22 20:24:35"
-  }
-]
-
-## 利润率趋势
-### 使用图表：bar
+### 使用图表：line
 title：利润率趋势
 chart: {
-    type: 'bar',
-    height: 600,
-}
-x轴设置
+  height: 350,
+  type: 'line',
+  dropShadow: {
+    enabled: true,
+    color: '#000',
+    top: 18,
+    left: 7,
+    blur: 10,
+    opacity: 0.5,
+  },
+  zoom: {
+    enabled: false,
+  },
+  toolbar: {
+    show: false,
+  },
+},
+dataLabels: {
+  enabled: true,
+},
+stroke: {
+  curve: 'smooth',
+},
+grid: {
+  borderColor: '#e7e7e7',
+  row: {
+    colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+    opacity: 0.5,
+  },
+},
+markers: {
+  size: 1,
+},
 xaxis: {
-    type: 'category',
-    labels: {
-      formatter: function (val) {
-        return val
-      },
-    },
-    group: {
-      style: {
-        fontSize: '10px',
-        fontWeight: 700,
-      },
-      groups: [
-        { title: report_year, cols: 查询条件的财报类型选择按钮选中几个 },
-      ],
-    },
+  categories: [report_year period],
+  title: {
+    text: '报告期',
   },
-tooltip: {
-    y: [
-      {
-        title: {
-          formatter: function (val) {
-            return val + ' (%)：'
-          },
-        },
-      },
-      {
-        title: {
-          formatter: function (val) {
-            return val + ' (%)：'
-          },
-        },
-      },
-      {
-        title: {
-          formatter: function (val) {
-            return val + ' (%)：'
-          },
-        },
-      },
-    ],
-  },
+},
+yaxis: {
+  title: {
+    text: '百分比(%)',
+  }
+},
+legend: {
+  position: 'top',
+  floating: true,
+},
 颜色设置：
 colors: ['#7dc3ea', '#ffa600', '#f46a64', '#97c786', '#fcaaa6'],
 series: [
     {
       name: '毛利率',
-      data: [
-        {
-          x: period,
-          y: gross_profit_margin,
-        }
-      ]
+      data: [gross_profit_margin]
     },
     {
       name: '净利润率',
-      data: [
-        {
-          x: period,
-          y: profit_attr_to_shareholders_margin,
-        }
-      ]
+      data: [profit_attr_to_shareholders_margin]
     },
     {
       name: '扣非净利润率',
-      data: [
-        {
-          x: period,
-          y: adjusted_profit_attr_to_shareholders_margin,
-        }
-      ]
+      data: [adjusted_profit_attr_to_shareholders_margin]
     },
   ]
 ### 数据获取
@@ -226,6 +185,7 @@ period 查询条件的财报类型选择period，该参数支持多值查询,
     "updated_at": "2026-06-22 20:24:35"
   }
 ]
+
 
 ## 运营数据
 ### 使用图表：bar
@@ -314,8 +274,48 @@ period 查询条件的财报类型选择period，该参数支持多值查询,
 ]
 
 ## 费用数据
+下面4个图表以1排4列展示
 ### 使用图表：line
-title：费用数据
+title：总费用
+chart: {
+    height: 600,
+    type: 'line',
+    stacked: false,
+  },
+dataLabels: {
+    enabled: false,
+  },
+stroke: {
+    width: [0, 4],
+  },
+yaxis: [
+    {
+        title: { text: '总费用(人民币)', style: { color: '#b0c8d8' } },
+    },
+    {
+        opposite: true,
+        title: { text: '总费用占比(%)', style: { color: '#b0c8d8' } },
+    },
+  ],
+labels: [
+    report_year period
+  ]
+颜色设置：
+colors: ['#7dc3ea', '#ffa600', '#f46a64', '#97c786', '#fcaaa6', '#375093'],
+series: [
+    {
+      name: '总费用',
+      type: 'column',
+      data: [selling_and_marketing_expenses + research_and_development_expenses + general_and_administrative_expenses],
+    },
+    {
+      name: '总费用占比(%)',
+      type: 'line',
+      data: [selling_and_marketing_expenses_ratio + research_and_development_expenses_ratio + general_and_administrative_expenses_ratio],
+    },
+  ],
+### 使用图表：line
+title：销售及营销开支
 chart: {
     height: 600,
     type: 'line',
@@ -335,20 +335,6 @@ yaxis: [
         opposite: true,
         title: { text: '销售及营销开支占比(%)', style: { color: '#b0c8d8' } },
     },
-    {
-        title: { text: '研发开支(人民币)', style: { color: '#b0c8d8' } },
-    },
-    {
-        opposite: true,
-        title: { text: '研发开支占比(%)', style: { color: '#b0c8d8' } },
-    },
-    {
-        title: { text: '一般及行政开支(人民币)', style: { color: '#b0c8d8' } },
-    },
-    {
-        opposite: true,
-        title: { text: '一般及行政开支占比(%)', style: { color: '#b0c8d8' } },
-    },
   ],
 labels: [
     report_year period
@@ -366,6 +352,35 @@ series: [
       type: 'line',
       data: [selling_and_marketing_expenses_ratio],
     },
+  ],
+### 使用图表：line
+title：研发开支
+chart: {
+    height: 600,
+    type: 'line',
+    stacked: false,
+  },
+dataLabels: {
+    enabled: false,
+  },
+stroke: {
+    width: [0, 4],
+  },
+yaxis: [
+    {
+        title: { text: '研发开支(人民币)', style: { color: '#b0c8d8' } },
+    },
+    {
+        opposite: true,
+        title: { text: '研发开支占比(%)', style: { color: '#b0c8d8' } },
+    },
+  ],
+labels: [
+    report_year period
+  ]
+颜色设置：
+colors: ['#7dc3ea', '#ffa600', '#f46a64', '#97c786', '#fcaaa6', '#375093'],
+series: [
     {
       name: '研发开支',
       type: 'column',
@@ -376,6 +391,35 @@ series: [
       type: 'line',
       data: [research_and_development_expenses_ratio],
     },
+  ],
+### 使用图表：line
+title：一般及行政开支
+chart: {
+    height: 600,
+    type: 'line',
+    stacked: false,
+  },
+dataLabels: {
+    enabled: false,
+  },
+stroke: {
+    width: [0, 4],
+  },
+yaxis: [
+    {
+        title: { text: '一般及行政开支(人民币)', style: { color: '#b0c8d8' } },
+    },
+    {
+        opposite: true,
+        title: { text: '一般及行政开支占比(%)', style: { color: '#b0c8d8' } },
+    },
+  ],
+labels: [
+    report_year period
+  ]
+颜色设置：
+colors: ['#7dc3ea', '#ffa600', '#f46a64', '#97c786', '#fcaaa6', '#375093'],
+series: [
     {
       name: '一般及行政开支',
       type: 'column',
@@ -562,10 +606,17 @@ responsive: [
     },
   },
 ],
+dataLabels: {
+    enabled: true,
+    formatter: function (val) {
+        if (Math.abs(val) >= 1000000) return (val / 1000000).toFixed(2) + 'B';
+        if (Math.abs(val) >= 1000) return (val / 1000).toFixed(2) + 'M';
+        return val;
+    },
+},
 plotOptions: {
   bar: {
     horizontal: false,
-    borderRadius: 10,
     dataLabels: {
       total: {
         enabled: true,
@@ -630,10 +681,17 @@ responsive: [
     },
   },
 ],
+dataLabels: {
+    enabled: true,
+    formatter: function (val) {
+        if (Math.abs(val) >= 1000000) return (val / 1000000).toFixed(2) + 'B';
+        if (Math.abs(val) >= 1000) return (val / 1000).toFixed(2) + 'M';
+        return val;
+    },
+},
 plotOptions: {
   bar: {
     horizontal: false,
-    borderRadius: 10,
     dataLabels: {
       total: {
         enabled: true,
@@ -689,5 +747,171 @@ period 查询条件的财报类型选择period，该参数支持多值查询,
     "other_game_revenue": 71648,
     "created_at": "2026-06-22 20:24:35",
     "updated_at": "2026-06-22 20:24:35"
+  }
+]
+
+## 资产负债数据
+两个图表1行2列展示
+### 使用图表：line
+title：合同负债
+chart: {
+  height: 600,
+  type: 'line',
+  dropShadow: {
+    enabled: true,
+    color: '#000',
+    top: 18,
+    left: 7,
+    blur: 10,
+    opacity: 0.5,
+  },
+  zoom: {
+    enabled: false,
+  },
+  toolbar: {
+    show: false,
+  },
+},
+dataLabels: {
+    enabled: true,
+    formatter: function (val) {
+        if (Math.abs(val) >= 1000000) return (val / 1000000).toFixed(2) + 'B';
+        if (Math.abs(val) >= 1000) return (val / 1000).toFixed(2) + 'M';
+        return val;
+    },
+},
+grid: {
+    borderColor: '#e7e7e7',
+    row: {
+      colors: ['#f3f3f3', 'transparent'], // takes an array which will be repeated on columns
+      opacity: 0.5,
+    },
+  },
+markers: {
+    size: 1,
+},
+xaxis: {
+  categories: [report_year period],
+  title: {
+    text: '报告期',
+  },
+},
+yaxis: {
+  title: {
+    text: '合同负债(人民币)',
+  }
+},
+legend: {
+  position: 'top',
+  floating: true,
+},
+颜色设置：
+colors: ['#7dc3ea', '#ffa600', '#f46a64', '#97c786', '#fcaaa6'],
+series: [
+    {
+      name: '合同负债(人民币)',
+      data: [contract_liabilities],
+    },
+  ]
+### 使用图表：bar
+title：现金及其等价物
+chart: {
+    height: 600,
+    type: 'line',
+    stacked: false,
+},
+stroke: {
+    width: [0, 2, 5],
+    curve: 'smooth',
+  },
+  plotOptions: {
+    bar: {
+      columnWidth: '50%',
+    },
+  },
+fill: {
+    opacity: [0.85, 0.25, 1],
+    gradient: {
+      inverseColors: false,
+      shade: 'light',
+      type: 'vertical',
+      opacityFrom: 0.85,
+      opacityTo: 0.55,
+      stops: [0, 100, 100, 100],
+    },
+  },
+markers: {
+  size: 0,
+},
+yaxis: {
+  title: {
+    text: 'Points',
+  },
+},
+tooltip: {
+  shared: true,
+  intersect: false,
+  y: {
+    formatter: function (y) {
+      if (typeof y !== 'undefined') {
+        return y.toFixed(0) + ' points'
+      }
+      return y
+    },
+  },
+},
+dataLabels: {
+    enabled: true,
+    formatter: function (val) {
+        if (Math.abs(val) >= 1000000) return (val / 1000000).toFixed(2) + 'B';
+        if (Math.abs(val) >= 1000) return (val / 1000).toFixed(2) + 'M';
+        return val;
+    },
+},
+xaxis: {
+  categories: [report_year period],
+  title: {
+    text: '报告期',
+  },
+},
+legend: {
+  position: 'top',
+},
+颜色设置：
+colors: ['#7dc3ea', '#ffa600', '#f46a64', '#97c786', '#fcaaa6'],
+series: [
+    {
+      name: '现金及现金等价物(人民币)',
+      type: 'column',
+      data: [cash_and_cash_equivalents],
+    },
+    {
+      name: '负债(人民币)',
+      type: 'column',
+      data: [total_liabilities],
+    },
+    {
+      name: '净现金(人民币)',
+      type: 'line',
+      data: [cash_and_cash_equivalents - total_liabilities - contract_liabilities],
+    },
+  ],
+### 数据获取
+数据从 /xd/balance-report 获取
+参数：
+start_year 查询条件的年份选择start_year
+end_year 查询条件的年份选择end_year
+period 查询条件的财报类型选择period，该参数支持多值查询, 
+返回的数据结构：
+[
+  {
+    "id": 10,
+    "report_year": 2025,
+    "period": "FY",
+    "cash_and_cash_equivalents": 3689375,
+    "contract_liabilities": 248156,
+    "total_liabilities": 1173582,
+    "created_at": "2026-06-23 22:36:21",
+    "updated_at": "2026-06-23 22:36:21"
   }
 ]

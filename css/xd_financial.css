@@ -142,6 +142,11 @@ body {
     min-width: 400px;
 }
 
+.chart-quarter {
+    flex: 1;
+    min-width: 250px;
+}
+
 /* ApexCharts 暗色主题覆盖 */
 .apexcharts-tooltip {
     background: #1a2a3a !important;
