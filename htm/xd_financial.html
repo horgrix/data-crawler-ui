@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>心动长青游戏数据追踪 - 财务指标</title>
+    <link rel="stylesheet" href="../css/xd_financial.css">
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+</head>
+<body>
+    <!-- 查询条件区域 - 悬浮 -->
+    <div id="filterBar">
+        <div class="filter-row">
+            <!-- 年份选择 - 平铺按钮 -->
+            <div class="filter-item">
+                <label>年份选择</label>
+                <div class="year-btns" id="yearBtns">
+                    <button data-offset="3">近3年</button>
+                    <button data-offset="5">近5年</button>
+                    <button data-offset="10">近10年</button>
+                </div>
+            </div>
+            <!-- 财报类型选择 - 平铺按钮 -->
+            <div class="filter-item">
+                <label>财报类型选择</label>
+                <div class="period-btns" id="periodBtns">
+                    <button data-period="H1">H1(上半年)</button>
+                    <button data-period="H2">H2(下半年)</button>
+                    <button data-period="FY">FY(全年)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图表区域 -->
+    <div id="chartsContainer">
+        <div class="chart-wrapper">
+            <div id="chartFinancial"></div>
+        </div>
+        <div class="chart-wrapper">
+            <div id="chartMargin"></div>
+        </div>
+        <div class="chart-wrapper">
+            <div id="chartOperational"></div>
+        </div>
+        <div class="chart-wrapper">
+            <div id="chartExpense"></div>
+        </div>
+        <div class="chart-row">
+            <div class="chart-wrapper chart-half">
+                <div id="chartRevenueShare"></div>
+            </div>
+            <div class="chart-wrapper chart-half">
+                <div id="chartBusinessMargin"></div>
+            </div>
+        </div>
+        <div class="chart-row">
+            <div class="chart-wrapper chart-half">
+                <div id="chartGameRevenueCategory"></div>
+            </div>
+            <div class="chart-wrapper chart-half">
+                <div id="chartGameRevenueMethod"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/xd_financial.js"></script>
+</body>
+</html>
